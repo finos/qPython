@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-__all__ = ['qconnection', 'qtype', 'qtemporal', 'qcollection']
+__all__ = ['qconnection', 'qaioconnection', 'qtype', 'qtemporal', 'qcollection']
 
 
 __version__ = '@@VERSION_PLACEHOLDER@@'

@@ -61,7 +61,7 @@ class QWriter(object):
         self._encoding = encoding
 
 
-    def write(self, data, msg_type, **options):
+    async def write(self, data, msg_type, **options):
         '''Serializes and pushes single data object to a wrapped stream.
         
         :Parameters:
@@ -92,7 +92,8 @@ class QWriter(object):
 
         # write data to socket
         if self._stream:
-            self._stream.sendall(self._buffer.getvalue())
+            self._stream.write(self._buffer.getvalue())
+            await self._stream.drain()
         else:
             return self._buffer.getvalue()
 

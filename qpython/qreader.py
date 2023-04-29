@@ -114,7 +114,7 @@ class QReader(object):
         self._encoding = encoding
 
 
-    def read(self, source = None, **options):
+    async def read(self, source = None, **options):
         '''
         Reads and optionally parses a single message.
 
@@ -133,13 +133,12 @@ class QReader(object):
         :returns: :class:`.QMessage` - read data (parsed or raw byte form) along
                   with meta information
         '''
-        message = self.read_header(source)
-        message.data = self.read_data(message.size, message.compression_mode, **options)
-
+        message = await self.read_header(source)
+        message.data = await self.read_data(message.size, message.compression_mode, **options)
         return message
 
 
-    def read_header(self, source = None):
+    async def read_header(self, source = None):
         '''
         Reads and parses message header.
 
@@ -153,7 +152,7 @@ class QReader(object):
         :returns: :class:`.QMessage` - read meta information
         '''
         if self._stream:
-            header = self._read_bytes(8)
+            header = await self._read_bytes(8)
             self._buffer.wrap(header)
         else:
             self._buffer.wrap(source)
@@ -169,7 +168,7 @@ class QReader(object):
         return QMessage(None, message_type, message_size, message_compression_mode)
 
 
-    def read_data(self, message_size, compression_mode = 0, **options):
+    async def read_data(self, message_size, compression_mode = 0, **options):
         '''
         Reads and optionally parses data part of a message.
 
@@ -195,9 +194,9 @@ class QReader(object):
         if compression_mode > 0:
             comprHeaderLen = 4 if compression_mode == 1 else 8
             if self._stream:
-                self._buffer.wrap(self._read_bytes(comprHeaderLen))
+                self._buffer.wrap(await self._read_bytes(comprHeaderLen))
             uncompressed_size = -8 + (self._buffer.get_uint() if compression_mode == 1 else self._buffer.get_long())
-            compressed_data = self._read_bytes(message_size - (8+comprHeaderLen)) if self._stream else self._buffer.raw(message_size - (8+comprHeaderLen))
+            compressed_data = await self._read_bytes(message_size - (8+comprHeaderLen)) if self._stream else self._buffer.raw(message_size - (8+comprHeaderLen))
 
             raw_data = numpy.frombuffer(compressed_data, dtype = numpy.uint8)
             if  uncompressed_size <= 0:
@@ -207,7 +206,7 @@ class QReader(object):
             raw_data = numpy.ndarray.tobytes(raw_data)
             self._buffer.wrap(raw_data)
         elif self._stream:
-            raw_data = self._read_bytes(message_size - 8)
+            raw_data = await self._read_bytes(message_size - 8)
             self._buffer.wrap(raw_data)
         if not self._stream and self._options.raw:
             raw_data = self._buffer.raw(message_size - 8)
@@ -378,14 +377,14 @@ class QReader(object):
         return QProjection(parameters)
 
 
-    def _read_bytes(self, length):
+    async def _read_bytes(self, length):
         if not self._stream:
             raise QReaderException('There is no input data. QReader requires either stream or data chunk')
 
         if length == 0:
             return b''
         else:
-            data = self._stream.read(length)
+            data = await self._stream.read(length)
 
         if len(data) == 0:
             raise QReaderException('Error while reading data')
