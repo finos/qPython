@@ -16,24 +16,26 @@
 
 import socket
 import struct
+import ssl
 
 from qpython import MetaData, CONVERSION_OPTIONS
 from qpython.qtype import QException
 from qpython.qreader import QReader, QReaderException
 from qpython.qwriter import QWriter, QWriterException
 
-
+''' SSL Section to load Certificate'''
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.verify_mode = ssl.CERT_REQUIRED
+context.check_hostname = True
+context.load_default_certs()
 
 class QConnectionException(Exception):
     '''Raised when a connection to the q service cannot be established.'''
     pass
 
-
-
 class QAuthenticationException(QConnectionException):
     '''Raised when a connection to the q service is denied.'''
     pass
-
 
 
 class MessageType(object):
@@ -62,6 +64,7 @@ class QConnection(object):
      - `username` (`string` or `None`) - username for q authentication/authorization
      - `password` (`string` or `None`) - password for q authentication/authorization
      - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
+     - `tls_enabled` (`True`False or `None) - set tls_enabled to use TLS Handshake and SSL Encryption
      - `encoding` (`string`) - string encoding for data deserialization
      - `reader_class` (subclass of `QReader`) - data deserializer
      - `writer_class` (subclass of `QWriter`) - data serializer
@@ -79,11 +82,12 @@ class QConnection(object):
 
     MAX_PROTOCOL_VERSION = 6
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, **options):
+    def __init__(self, host, port, username = None, password = None, timeout = None, tls_enabled = None ,encoding = 'latin-1', reader_class = None, writer_class = None, **options):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
+        self.tls_enabled = tls_enabled
 
         self._connection = None
         self._connection_file = None
@@ -152,9 +156,13 @@ class QConnection(object):
         '''Initialises the socket used for communicating with a q service,'''
         try:
             self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            if self.tls_enabled:
+                self._connection = context.wrap_socket(self._connection,server_hostname = self.host)
+
             self._connection.connect((self.host, self.port))
             self._connection.settimeout(self.timeout)
-            self._connection_file = self._connection.makefile('b')
+            self._connection_file = self._connection.makefile('b')            
         except:
             self._connection = None
             self._connection_file = None
