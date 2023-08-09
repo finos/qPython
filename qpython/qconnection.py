@@ -82,7 +82,7 @@ class QConnection(object):
 
     MAX_PROTOCOL_VERSION = 6
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, tls_enabled = None ,encoding = 'latin-1', reader_class = None, writer_class = None, **options):
+    def __init__(self, host, port, username = None, password = None, timeout = None, tls_enabled = False ,encoding = 'latin-1', reader_class = None, writer_class = None, **options):
         self.host = host
         self.port = port
         self.username = username
