@@ -16,6 +16,7 @@
 
 import socket
 import struct
+import ssl
 
 from qpython import MetaData, CONVERSION_OPTIONS
 from qpython.qtype import QException
@@ -63,6 +64,7 @@ class QConnection(object):
      - `password` (`string` or `None`) - password for q authentication/authorization
      - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
      - `encoding` (`string`) - string encoding for data deserialization
+     - `useTls` (` boolean`) - use TLS for sockets, **Default**: ``False``
      - `reader_class` (subclass of `QReader`) - data deserializer
      - `writer_class` (subclass of `QWriter`) - data serializer
     :Options: 
@@ -79,11 +81,12 @@ class QConnection(object):
 
     MAX_PROTOCOL_VERSION = 6
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, **options):
+    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', useTls = False, reader_class = None, writer_class = None, **options):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
+        self.useTls = useTls
 
         self._connection = None
         self._connection_file = None
@@ -151,7 +154,11 @@ class QConnection(object):
     def _init_socket(self):
         '''Initialises the socket used for communicating with a q service,'''
         try:
-            self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if self.useTls:
+                context = ssl.create_default_context()
+                sock = context.wrap_socket(sock, server_hostname=self.host)
+            self._connection = sock
             self._connection.connect((self.host, self.port))
             self._connection.settimeout(self.timeout)
             self._connection_file = self._connection.makefile('b')
