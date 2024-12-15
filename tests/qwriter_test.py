@@ -186,8 +186,8 @@ def test_writing():
     test_writing_one(b'(0b;1b;0b)',                                    (numpy.array([False, True, False], dtype=numpy.bool_),
                                                       qlist(numpy.array([False, True, False]), qtype = QBOOL_LIST),
                                                       qlist([False, True, False], qtype = QBOOL_LIST)))
-    test_writing_one(b'(0x01;0x02;0xff)',                              (numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte),
-                                                      qlist(numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte), qtype = QBYTE_LIST),
+    test_writing_one(b'(0x01;0x02;0xff)',                              (numpy.array([0x01, 0x02, 0xff]).astype(numpy.byte),
+                                                      qlist(numpy.array([0x01, 0x02, 0xff]).astype(numpy.byte), qtype = QBYTE_LIST),
                                                       qlist(numpy.array([0x01, 0x02, 0xff]), qtype = QBYTE_LIST),
                                                       qlist([0x01, 0x02, 0xff], qtype = QBYTE_LIST)))
     test_writing_one(b'(1h;2h;3h)',                                    (numpy.array([1, 2, 3], dtype=numpy.int16),

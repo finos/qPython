@@ -52,7 +52,7 @@ try:
 
                      (b'(0b;1b;0b)',                                  {'data': pandas.Series(numpy.array([False, True, False], dtype = bool)),
                                                                       'meta': MetaData(qtype = QBOOL_LIST) }),
-                     (b'(0x01;0x02;0xff)',                            {'data': pandas.Series(numpy.array([1, 2, 0xff], dtype = numpy.int8)),
+                     (b'(0x01;0x02;0xff)',                            {'data': pandas.Series(numpy.array([1, 2, 0xff]).astype(numpy.int8)),
                                                                       'meta': MetaData(qtype = QBYTE_LIST) }),
                      (b'(1h;2h;3h)',                                  {'data': pandas.Series(numpy.array([1, 2, 3], dtype = numpy.int16)),
                                                                       'meta': MetaData(qtype = QSHORT_LIST) }),
